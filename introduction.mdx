@@ -1,0 +1,60 @@
+---
+title: "Introduction"
+description: "What Valstore is and how it works"
+---
+
+Valstore is an open-source Flutter app that gives you portable access to your Valorant in-game shop without having to launch the game. You can check your daily skin offers, browse the Night Market, view active bundles, manage a wishlist, and receive push notifications when wishlisted items appear in your shop.
+
+<Note>
+  Valstore was archived and removed from Google Play after Riot Games objected to third-party apps of this type. The project is no longer actively maintained, but the source code remains freely available and the app continues to work as of the time of archiving. You can obtain a build by compiling it yourself from the source.
+</Note>
+
+## What Valstore does
+
+Valstore connects to Riot's private Valorant API on your behalf to retrieve the same shop data the game client reads. Once you authenticate, the app displays:
+
+- **Player shop** — your four daily rotating skin offers with prices and tier badges
+- **Night Market** — discounted skins when the Night Market event is active
+- **Featured bundles** — the current bundle available for purchase, with a countdown timer
+- **Accessories** — weapon accessories available in the store
+- **Wishlist and gallery** — browse all purchasable skins and save favorites; get notified when a wishlisted skin appears in your shop
+- **Push notifications** — background checks via WorkManager that alert you to new shop rotations, Night Market arrivals, and bundle changes
+
+## How authentication works
+
+Valstore never handles your Riot credentials directly. When you log in, the app opens an in-app WebView that loads the official Riot OAuth authorization page at `https://auth.riotgames.com/`. You enter your username and password on Riot's own page — Valstore's code never sees them.
+
+After a successful login, Riot redirects to a `playvalorant.com` callback URL that contains a short-lived access token in the URL fragment. Valstore intercepts that redirect, extracts the token, and immediately exchanges it for an entitlements token from `https://entitlements.auth.riotgames.com/api/token/v1/`. The session cookies from the Riot login page are saved locally via SharedPreferences so you can re-authenticate silently on future launches without going through the WebView again.
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| UI framework | Flutter / Dart (SDK `^3.4.1`) |
+| State management | Provider |
+| Local persistence | SharedPreferences |
+| Background tasks | WorkManager (periodic shop checks) |
+| Push notifications | flutter_local_notifications |
+| Auth WebView | flutter_inappwebview |
+| Cloud backend | Firebase (Firestore for skin data + anonymous Auth) |
+| Skin metadata | [valorant-api.com](https://valorant-api.com) (unofficial community API) |
+| Riot shop data | Riot's private PVP API (`pd.<region>.a.pvp.net`) |
+
+Valstore is **not** endorsed by, affiliated with, or approved by Riot Games. Valorant and all related marks are trademarks of Riot Games, Inc.
+
+## Explore the docs
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="wrench" href="/getting-started/installation">
+    Build the APK from source and sideload it onto your Android device.
+  </Card>
+  <Card title="Logging in" icon="key" href="/getting-started/login">
+    Authenticate with your Riot account through the in-app WebView.
+  </Card>
+  <Card title="Player shop" icon="cart-shopping" href="/features/player-shop">
+    Understand your daily skin rotation and how offers are displayed.
+  </Card>
+  <Card title="Notifications" icon="bell" href="/features/notifications">
+    Set up wishlist alerts and background shop checks.
+  </Card>
+</CardGroup>

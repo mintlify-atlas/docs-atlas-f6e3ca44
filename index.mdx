@@ -1,97 +1,69 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Valstore"
+description: "Portable access to your Valorant shop — view your daily offers, Night Market, bundles, and wishlist directly from your Android device."
 ---
 
-## Setting up
-
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Get started" icon="rocket" href="/getting-started/installation">
+    Install Valstore from the APK and log in with your Riot account.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Player Shop" icon="store" href="/features/player-shop">
+    View your four daily skin offers with pricing and countdown timer.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Night Market" icon="moon" href="/features/night-market">
+    See discounted skins and percentage savings when Night Market is active.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Wishlist & Notifications" icon="bell" href="/features/notifications">
+    Get notified when a wishlisted skin appears in your shop.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## What is Valstore?
 
-Everything you need to create world-class documentation.
+Valstore is an open-source Flutter app that connects to Riot's in-game APIs to display your Valorant store on your mobile device — no need to launch the full game just to check your offers.
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+<Note>
+  Valstore is an unofficial third-party app and is not affiliated with or endorsed by Riot Games. The project has been archived by the original author; the Google Play listing was removed at Riot's request. You can still build and sideload the app from this repository.
+</Note>
 
-## Need inspiration?
+## Key features
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<CardGroup cols={2}>
+  <Card title="Daily shop" icon="tag" href="/features/player-shop">
+    Four rotating skin offers with VP costs and refresh countdown.
+  </Card>
+  <Card title="Night Market" icon="percent" href="/features/night-market">
+    Six discounted skins with exact savings percentages.
+  </Card>
+  <Card title="Featured bundles" icon="box" href="/features/bundles">
+    Browse all items in the current featured bundle.
+  </Card>
+  <Card title="Gallery & wishlist" icon="heart" href="/features/gallery-wishlist">
+    Browse every purchasable skin and save your favorites.
+  </Card>
+  <Card title="Push notifications" icon="bell" href="/features/notifications">
+    Background checks notify you when wishlisted skins rotate in.
+  </Card>
+  <Card title="Inventory" icon="shield" href="/features/gallery-wishlist">
+    View all skins you already own in one place.
+  </Card>
+</CardGroup>
+
+## How it works
+
+Valstore authenticates you via Riot's OAuth flow inside a secure in-app WebView. Your access token is stored locally and used to fetch storefront data directly from Riot's private API endpoints. No credentials are ever sent to Valstore's own servers — the only third-party backend used is Firebase for the community skin database and wishlist sync.
+
+<Steps>
+  <Step title="Install the APK">
+    Download the latest release APK from the [GitHub releases page](https://github.com/ruzbyte/valstore-mobile/releases) and sideload it onto your Android device.
+  </Step>
+  <Step title="Select your region">
+    Choose your Valorant region (EU, NA, AP, KR, BR, LATAM) on the region selection screen.
+  </Step>
+  <Step title="Log in with Riot">
+    An in-app browser opens the official Riot authentication page. Enter your Riot credentials — Valstore never sees your password.
+  </Step>
+  <Step title="Check your shop">
+    Your daily offers load automatically. Browse the shop, Night Market, and bundles in real time.
+  </Step>
+</Steps>

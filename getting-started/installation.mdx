@@ -1,0 +1,94 @@
+---
+title: "Installation"
+description: "How to build and install Valstore on Android"
+---
+
+Valstore is not available on the Google Play Store. You need to build the APK yourself from the source code and sideload it onto your device.
+
+<Warning>
+  Installing apps from outside the Play Store requires enabling **Install unknown apps** (or **Unknown sources**) on your Android device. The exact location of this setting varies by manufacturer and Android version. On Android 8 and above, navigate to **Settings > Apps > Special app access > Install unknown apps** and grant permission to the file manager or ADB tool you will use to install the APK.
+</Warning>
+
+<Note>
+  iOS is not officially supported. The project was never submitted to the App Store, and no iOS build instructions exist in the source. The Flutter codebase uses Android-specific WorkManager bindings for background tasks, so a straightforward iOS build is unlikely to work without modifications.
+</Note>
+
+## Prerequisites
+
+Before you begin, make sure you have the following installed and configured:
+
+- **Flutter SDK** version `^3.4.1` — install via [flutter.dev](https://flutter.dev/docs/get-started/install)
+- **Dart SDK** version `^3.1` (bundled with Flutter)
+- **Android SDK** with a connected Android device or emulator
+- **A Firebase project** with Firestore and Authentication enabled (see [Firebase console](https://console.firebase.google.com))
+- **ADB** (Android Debug Bridge) if you prefer to install the APK over USB
+
+## Build and install
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the Valstore source code to your local machine:
+
+    ```bash
+    git clone https://github.com/ruzbyte/valstore-mobile.git
+    cd valstore-mobile
+    ```
+  </Step>
+
+  <Step title="Install Flutter dependencies">
+    Fetch all Dart/Flutter packages declared in `pubspec.yaml`:
+
+    ```bash
+    flutter pub get
+    ```
+
+    This resolves dependencies including `firebase_core`, `flutter_inappwebview`, `workmanager`, and others.
+  </Step>
+
+  <Step title="Add the Firebase configuration file">
+    Valstore requires a Firebase project for Firestore (skin data cache) and anonymous Authentication.
+
+    1. Go to your [Firebase console](https://console.firebase.google.com) and create a new project (or use an existing one).
+    2. Add an **Android app** with the package name `de.zaroc.valstore`.
+    3. Download the generated `google-services.json` file.
+    4. Place the file at `android/app/google-services.json` inside the cloned repository.
+
+    Without this file the app will fail to compile.
+  </Step>
+
+  <Step title="Build the APK">
+    Compile the release APK. Choose a build variant depending on your needs:
+
+    <CodeGroup>
+
+    ```bash Release build
+    flutter build apk --release
+    ```
+
+    ```bash Debug build
+    flutter build apk --debug
+    ```
+
+    </CodeGroup>
+
+    The release APK is written to `build/app/outputs/flutter-apk/app-release.apk`. Use the debug build if you want verbose logging and the Flutter DevTools overlay.
+  </Step>
+
+  <Step title="Install the APK on your device">
+    Transfer and install the APK using one of the following methods:
+
+    **Via ADB (USB cable):**
+
+    ```bash
+    adb install build/app/outputs/flutter-apk/app-release.apk
+    ```
+
+    **Via file transfer:**
+
+    Copy `app-release.apk` to your device storage (for example, with a USB cable or cloud storage), open the file with your device's file manager, and follow the system prompts to install it.
+  </Step>
+</Steps>
+
+## Keeping Valstore up to date
+
+Valstore checks a version endpoint on launch and prompts you to download a newer release from GitHub if one is available. Because the app is sideloaded, updates are not automatic — you need to repeat the build and install steps whenever you want to update.

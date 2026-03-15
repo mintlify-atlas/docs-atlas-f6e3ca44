@@ -1,0 +1,40 @@
+---
+title: "Player shop"
+description: "Your four daily rotating skin offers"
+---
+
+Every Valorant account receives four weapon skin offers that rotate every 24 hours. The player shop screen lets you check those offers at any time without opening the game.
+
+## What you see on the shop screen
+
+Each skin card shows:
+
+- **Skin name** — the full display name of the skin
+- **Tier icon** — the content tier badge displayed in the top-right corner of the card
+- **Tier color** — the card background gradient uses the tier's signature color so you can identify rarity at a glance
+- **VP price** — the Valorant Points cost shown in the bottom-right alongside the VP currency icon
+- **Countdown timer** — a live countdown in the app header showing how much time remains before the shop refreshes
+
+Tapping any skin card opens the skin detail screen, where you can watch its unlock video (levels and chromas) if preview footage is available from the Riot API.
+
+## Content tiers
+
+Valstore color-codes each offer by its content tier based on the skin's VP price:
+
+| Tier | VP cost | Card color |
+|------|---------|------------|
+| Select | 875 VP | Blue (`#5b9cdd`) |
+| Deluxe | 1,275 VP | Teal (`#28bda7`) |
+| Premium | 1,775 VP | Pink (`#cb558d`) |
+| Exclusive | 2,175 VP | Orange (`#fd9257`) |
+| Ultra | 2,475 VP | Gold (`#eed878`) |
+
+The tier icon is sourced from the Riot content tier asset endpoint and rendered as a watermark behind the skin image.
+
+## Shop refresh mechanism
+
+Valstore registers a periodic background task called `ValStoreStoreRenewal` using WorkManager. This task runs silently even when the app is closed, re-authenticates your session, fetches the new daily offers, and fires a push notification if any wishlisted skin appears in the rotation.
+
+<Tip>
+  Add skins to your wishlist to receive a push notification the moment they appear in your daily shop — no need to check the app manually.
+</Tip>

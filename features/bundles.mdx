@@ -1,0 +1,29 @@
+---
+title: "Featured bundles"
+description: "Browse the current featured weapon bundle"
+---
+
+Featured bundles are themed collections of weapon skins sold together in Valorant's store. Buying the full bundle is typically cheaper than purchasing each skin individually. Valstore shows you the active bundle(s) alongside all their included skins and pricing details.
+
+## What the bundles screen shows
+
+At the top of the screen, each active bundle has a **banner card** containing:
+
+- **Bundle name** — the themed display name (e.g. "Oni 2.0")
+- **Banner image** — a full-width background art image sourced from valorant-api.com
+- **Total bundle price** — the combined VP cost to purchase everything in the bundle at once
+- **Countdown timer** — how much time remains before the bundle rotates out of the store
+
+Below the banner, every weapon skin included in the bundle is listed as an individual card showing the skin name, tier icon, skin preview image, and individual VP price. Tapping a skin card opens the skin detail page with level and chroma previews.
+
+## Multiple active bundles
+
+Valstore supports displaying multiple bundles simultaneously. If Riot has more than one bundle active at the same time, each bundle gets its own banner and skin list scrollable on the same screen.
+
+<Note>
+  Bundle display assets — the banner image, bundle name, and artwork — are fetched from valorant-api.com using the bundle's data asset ID from the Riot storefront response.
+</Note>
+
+## Bundle change notification
+
+Valstore schedules a periodic background task called `ValStoreBundleRenewal` via WorkManager. Each time this task runs, it compares the current bundle ID against the last known bundle ID stored on your device. If the bundle has changed, it sends a push notification — "New Bundle Available!" — so you know to check the store.

@@ -1,0 +1,75 @@
+---
+title: "Notifications"
+description: "Push notifications for shop events and wishlisted skins"
+---
+
+Valstore sends push notifications for three types of events so you never miss a skin or a time-limited offer.
+
+## Notification types
+
+<AccordionGroup>
+  <Accordion title="Wishlist hit — skin in your daily shop">
+    When a skin you have wishlisted appears in your four daily rotating shop offers, Valstore sends a notification titled **"Skin arrived!"** with the body `{skin name} is available in your shop`. The notification includes a large picture of the skin's display icon attached directly in the notification drawer.
+  </Accordion>
+  <Accordion title="Night Market available">
+    When Valstore detects that Night Market has become active for the current act, it sends a notification titled **"Night market is back!"** with the body `The Night Market is available again.` This fires at most once per Night Market event — after notifying, the flag is stored locally so you are not notified again until the next event cycle.
+  </Accordion>
+  <Accordion title="New bundle">
+    When the featured bundle in the store rotates to a new theme, Valstore sends a notification titled **"New Bundle Available!"** with the body `The {bundle name} Bundle is now available for purchase`. The notification includes the bundle's banner image.
+  </Accordion>
+</AccordionGroup>
+
+## How background tasks work
+
+Valstore uses WorkManager to schedule three periodic background tasks that run silently even when the app is fully closed:
+
+| Task name | What it checks |
+|-----------|----------------|
+| `ValStoreStoreRenewal` | Fetches your daily shop and compares offers against your Firestore wishlist |
+| `NightMarketRenewal` | Calls the storefront API and checks for a `BonusStore` field indicating Night Market is active |
+| `ValStoreBundleRenewal` | Fetches the current featured bundle ID and compares it to the last known bundle ID saved on-device |
+
+Each task re-authenticates your Riot session using your stored cookies before making any API calls, so no manual action is required.
+
+## Granting notification permission
+
+<Note>
+  On Android 13 and later, the operating system requires apps to explicitly request notification permission. Valstore asks for this permission on first launch. If you accidentally denied it, go to **Settings → Apps → Valstore → Notifications** and enable the permission.
+</Note>
+
+## Fixing notifications on battery-restricted devices
+
+<Warning>
+  Some Android manufacturers — including Xiaomi, OPPO, Realme, and Huawei — aggressively kill background tasks to save battery. If you are not receiving notifications, the device's battery optimisation is likely stopping WorkManager from running.
+</Warning>
+
+To fix notification delivery, follow the steps for your device manufacturer:
+
+<AccordionGroup>
+  <Accordion title="Xiaomi (MIUI / HyperOS)">
+    <Steps>
+      <Step title="Open app info">
+        Long-press the Valstore app icon and tap **App-Info**.
+      </Step>
+      <Step title="Open battery settings">
+        Tap **Battery saver**.
+      </Step>
+      <Step title="Remove restrictions">
+        Select **No restrictions**. This allows WorkManager tasks to run in the background.
+      </Step>
+    </Steps>
+  </Accordion>
+  <Accordion title="Other manufacturers (OPPO, Realme, Huawei, Samsung, etc.)">
+    <Steps>
+      <Step title="Open device settings">
+        Open your device's **Settings** app.
+      </Step>
+      <Step title="Find autostart or background app settings">
+        Look for **Battery**, **App Management**, or a manufacturer-specific **Security** app. The exact label varies by device.
+      </Step>
+      <Step title="Enable Autostart for Valstore">
+        Find Valstore in the list and enable **Autostart** (or equivalent). This prevents the system from terminating Valstore's background tasks.
+      </Step>
+    </Steps>
+  </Accordion>
+</AccordionGroup>

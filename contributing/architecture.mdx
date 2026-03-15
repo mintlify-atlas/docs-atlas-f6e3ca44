@@ -1,0 +1,164 @@
+---
+title: "Architecture"
+description: "Codebase structure and data flow"
+---
+
+## Overview
+
+Valstore follows a simple Provider-based state management pattern. A single `ChangeNotifier` class (`ValstoreProvider`) holds all shared runtime state, while purpose-built service classes handle data fetching from the Riot Games API, the unofficial valorant-api.com API, and Firebase. Pages read from the provider and call service methods directly — there is no separate repository or bloc layer.
+
+## Directory structure
+
+```
+lib/
+├── main.dart                    # App entry point, WorkManager init, Firebase init
+├── routes.dart                  # Named route definitions
+├── theme.dart                   # MaterialApp theme configuration
+├── valstore_provider.dart       # ChangeNotifier for global app state
+├── login/                       # Region selection + Riot OAuth WebView flow
+├── shops/                       # Shop, Night Market, Bundle, Accessories pages
+├── galery/                      # Skin gallery browser + Favorites/Wishlist page
+├── account/                     # Account info, Inventory, Loadout pages
+├── settings/                    # App settings page
+├── models/                      # Dart data classes (JSON deserialization)
+└── services/
+    ├── riot_service.dart            # Riot Games API client
+    ├── inofficial_valorant_api.dart # valorant-api.com client
+    ├── firestore_service.dart       # Firebase Firestore operations
+    ├── firebase_auth.dart           # Firebase Authentication
+    └── notifcation_service.dart     # flutter_local_notifications wrapper
+```
+
+### Key models
+
+All data classes in `lib/models/` are plain Dart objects with `fromJson` / `toJson` methods. The most important ones are:
+
+| Model | Description |
+|---|---|
+| `FirebaseSkin` | A single skin with name, icon, cost, content tier, levels, and chromas |
+| `PlayerShop` | The player's daily four-skin offer with a TTL timestamp |
+| `Player` / `PlayerInfo` / `Wallet` | Player identity, account level, card art, and currency balances |
+| `Storefront` | Raw Riot storefront response (shop, accessories, bundles, Night Market) |
+| `NightMarket` / `NightMarketSkin` | Night Market offers with discount percentage |
+| `BundleDisplayData` | Bundle metadata merged from the Riot storefront and valorant-api.com |
+
+## State management
+
+`ValstoreProvider` (extends `ChangeNotifier`) is the single source of truth for data that multiple pages share — the player's shop, player info, and skin wishlist. It is injected at the root of the widget tree in `main.dart`:
+
+```dart
+// lib/main.dart
+ChangeNotifierProvider(
+  create: (context) => ValstoreProvider(),
+  builder: (context, child) {
+    return MaterialApp(
+      routes: routes,
+      theme: themeData,
+    );
+  },
+);
+```
+
+Any page that needs shared state accesses it through:
+
+```dart
+final state = Provider.of<ValstoreProvider>(context);
+final valstore = state.getInstance;
+```
+
+The wishlist is also managed through `ValstoreProvider`. Calls to `toggleWishlist(uuid)` update both the in-memory `_skins` list and the Firestore document simultaneously, then call `notifyListeners()` to rebuild dependent widgets.
+
+## Authentication flow
+
+Valstore uses a WebView-based Riot OAuth flow. The user never enters credentials into the app itself.
+
+<Steps>
+  <Step title="Region selection">
+    The user picks a region (`eu`, `na`, `ap`, etc.) on `RegionPage`. The selection is written to `SharedPreferences` under the key `"region"` and read by `RiotService` on every subsequent API call.
+  </Step>
+
+  <Step title="Riot OAuth in a WebView">
+    `WebViewPage` (in `lib/login/login_webview.dart`) opens the Riot OAuth authorize URL:
+
+    ```
+    https://auth.riotgames.com/authorize
+      ?redirect_uri=https%3A%2F%2Fplayvalorant.com%2Fopt_in
+      &client_id=play-valorant-web-prod
+      &response_type=token%20id_token
+      &nonce=1
+      &scope=account%20openid
+    ```
+  </Step>
+
+  <Step title="Intercept the redirect">
+    The WebView intercepts the redirect to `https://playvalorant.com/opt_in` and extracts the `access_token` from the URL fragment (`#access_token=...`). This token is stored in `RiotService.accessToken`.
+  </Step>
+
+  <Step title="Exchange for an entitlements JWT">
+    `RiotService.getEntitlements()` POSTs to `https://entitlements.auth.riotgames.com/api/token/v1/` with the access token in the `Authorization` header. The returned `entitlements_token` is stored in `RiotService.entitlements` and attached to every subsequent Riot API request as the `X-Riot-Entitlements-JWT` header.
+  </Step>
+
+  <Step title="Decode the PUUID">
+    `RiotService.getUserId()` decodes the access token JWT using `jwt_decode` and reads the `sub` claim, which contains the player's PUUID. This is stored in `RiotService.userId` and used as a path parameter in all player-specific API calls.
+  </Step>
+
+  <Step title="Save cookies for silent re-auth">
+    `RiotService.saveCookies()` reads all cookies from the `auth.riotgames.com` domain via `CookieManager` and serialises them to `SharedPreferences` under the key `"cookie"`. On subsequent app launches, `reuathenticateUser()` replays these cookies against the Riot authorization endpoint to obtain a fresh access token without showing the WebView again.
+  </Step>
+</Steps>
+
+## Data flow
+
+All Riot player-data endpoints require the `Authorization: Bearer <accessToken>`, `X-Riot-Entitlements-JWT`, `X-Riot-ClientVersion`, and `X-Riot-ClientPlatform` headers. `RiotService.platformHeaders` holds the last two and is spread into every request.
+
+### Key API call chain
+
+| Data | Method | Endpoint |
+|---|---|---|
+| Shop offers (skins + accessories + bundles) | `RiotService.getUserOffers()` | `POST https://pd.{region}.a.pvp.net/store/v3/storefront/{uuid}` |
+| All skin metadata | `RiotService.getAllSkins()` | `GET https://valorant-api.com/v1/weapons/skins` |
+| Bundle details | `RiotService.getCurrentBundle()` | `GET https://valorant-api.com/v1/bundles/{id}` |
+| Player identity + card | `RiotService.getUserData()` | `PUT https://pd.{region}.a.pvp.net/name-service/v2/players` |
+| Currency balances | inside `getUserData()` | `GET https://pd.{region}.a.pvp.net/store/v1/wallet/{uuid}` |
+| Player inventory (owned skins) | `RiotService.getUserOwnedItems()` | `GET https://pd.{region}.a.pvp.net/store/v1/entitlements/{uuid}/{itemTypeId}` |
+| Current Valorant version | `InofficialValorantAPI.getCurrentVersion()` | `GET https://valorant-api.com/v1/version` |
+
+Skin metadata from `valorant-api.com` is merged with offer data from the Riot storefront to build `FirebaseSkin` objects. Skins are also written to Firestore (via `FireStoreService.registerSkin()`) so that background tasks can resolve offer IDs to display names and icons without a live user session.
+
+## Background tasks
+
+Valstore schedules periodic background work using [WorkManager](https://pub.dev/packages/workmanager). The callback dispatcher is registered at startup:
+
+```dart
+// lib/main.dart
+Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);
+```
+
+The `callbackDispatcher()` function is annotated with `@pragma("vm:entry-point")` so the Dart compiler does not tree-shake it. It initialises Firebase (required in the background isolate) and then dispatches on the task name:
+
+| Task name | Purpose |
+|---|---|
+| `ValStoreStoreRenewal` | Refreshes the player's daily shop; checks each offer against the Firestore wishlist and fires a rich push notification (with skin artwork) if there is a match |
+| `NightMarketRenewal` | Checks whether a Night Market is active; sends a text-only notification the first time one is detected |
+| `ValStoreBundleRenewal` | Compares the current featured bundle ID to the last-known value in `SharedPreferences`; sends a notification with bundle artwork when the rotation changes |
+
+Notifications are dispatched through `NotificationService`, which wraps `flutter_local_notifications`. Both image-based (`showInstantNotification`) and text-only (`showInstantNotificationWithoutPicture`) variants are available.
+
+## Key dependencies
+
+| Package | Version | Role |
+|---|---|---|
+| `provider` | `^6.0.5` | `ChangeNotifier`-based state management |
+| `http` | `^1.3.0` | All HTTP requests to Riot and valorant-api.com |
+| `jwt_decode` | `^0.3.1` | Parses the Riot access token to extract the PUUID |
+| `shared_preferences` | `^2.0.17` | Local storage for auth cookies, region, and wishlist flags |
+| `firebase_core` | `^3.8.0` | Firebase SDK initialisation |
+| `cloud_firestore` | `^5.5.0` | Skin registry and user wishlist storage |
+| `firebase_auth` | `^5.3.3` | Anonymous sign-in for Firestore access control |
+| `workmanager` | git (`main`) | Periodic background task scheduling on Android |
+| `flutter_local_notifications` | `^19.0.0` | Push notifications for shop and wishlist alerts |
+| `flutter_inappwebview` | `^6.1.5` | In-app WebView for the Riot OAuth flow |
+| `cached_network_image` | `^3.3.1` | Skin and player card image loading with disk caching |
+| `video_player` + `chewie` | `^2.6.1` / `^1.5.0` | Skin video preview playback |
+| `google_fonts` | `^6.2.1` | Nunito font used throughout the app |
+| `shimmer` | `^3.0.0` | Loading skeleton placeholders |

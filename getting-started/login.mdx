@@ -1,0 +1,67 @@
+---
+title: "Logging in"
+description: "Authenticate with your Riot account"
+---
+
+Valstore uses Riot's official OAuth flow to authenticate you. Your Riot username and password are entered directly on Riot's own login page inside an in-app WebView — Valstore's code never intercepts or stores your credentials.
+
+## Login flow
+
+<Steps>
+  <Step title="Open the app and tap to get started">
+    On the home screen you will see the Valstore logo and a short description of the app. Tap **Login at Riot games** to begin.
+
+    If you previously logged in and opted to be taken directly to the login page on next launch, the app skips this screen automatically and proceeds to step 2 or 3 depending on whether your region is already saved.
+  </Step>
+
+  <Step title="Select your Valorant region">
+    If no region is saved yet, the app navigates to the region selection screen. Choose the region that matches your Valorant account:
+
+    | Option | Region |
+    |---|---|
+    | Europe | EU |
+    | North America | NA |
+    | Asia / Pacific | AP |
+    | Korea | KR |
+
+    Tap **Continue** after selecting your region. The region is saved to SharedPreferences and is used for all subsequent API calls to Riot's `pd.<region>.a.pvp.net` endpoints.
+  </Step>
+
+  <Step title="Sign in on the Riot login page">
+    An in-app WebView opens and loads the Riot OAuth authorization URL:
+
+    ```
+    https://auth.riotgames.com/authorize?redirect_uri=https%3A%2F%2Fplayvalorant.com%2Fopt_in&client_id=play-valorant-web-prod&response_type=token%20id_token&nonce=1&scope=account%20openid
+    ```
+
+    This is the same page used by the official Valorant web client. Enter your Riot ID and password on this page. The app uses a standard mobile browser user-agent so the page renders correctly.
+
+    When prompted, accept cookies and tap **Stay signed in** — this ensures the session cookies are saved for re-authentication on future launches.
+
+    <Tip>
+      Two-factor authentication (2FA) works seamlessly through the WebView. If your account has 2FA enabled, Riot's login page will prompt you for your authenticator code or email verification as usual. Complete the 2FA step on the same page and the flow will continue normally.
+    </Tip>
+  </Step>
+
+  <Step title="Tokens are exchanged and stored">
+    After a successful login, Riot redirects to a `https://playvalorant.com/opt_in` callback URL containing an access token. Valstore intercepts this navigation, extracts the token, and immediately posts it to:
+
+    ```
+    https://entitlements.auth.riotgames.com/api/token/v1/
+    ```
+
+    This exchange returns an **entitlements token**, which is required for all subsequent shop API calls. Your user ID is decoded from the access token using JWT parsing. The session cookies from the Riot login page are also saved locally so the app can re-authenticate silently next time.
+  </Step>
+
+  <Step title="Shop data loads automatically">
+    Once the tokens are in place, Valstore navigates to the store screen and begins fetching your shop data from Riot's API. Skin metadata (names, icons, content tiers) is resolved from [valorant-api.com](https://valorant-api.com) and cached in Firestore.
+  </Step>
+</Steps>
+
+<Note>
+  Session persistence — your login cookies are saved to SharedPreferences after the first successful sign-in. On subsequent launches, Valstore attempts to re-authenticate silently by replaying the saved cookies against `https://auth.riotgames.com/api/v1/authorization`. If this succeeds, you go directly to the shop without seeing the WebView again.
+</Note>
+
+<Warning>
+  If your cookies expire or become invalid, the silent re-authentication will fail and the app may appear stuck on a loading screen. If this happens, clear the app's data from your Android device settings (**Settings > Apps > Valstore > Storage > Clear data**) and go through the login flow again from the beginning.
+</Warning>

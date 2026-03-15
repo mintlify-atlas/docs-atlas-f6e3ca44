@@ -1,0 +1,32 @@
+---
+title: "Night Market"
+description: "Discounted skin offers during Night Market events"
+---
+
+Night Market is a limited-time Valorant event where Riot gives every player a personally curated set of six weapon skins at a significant discount. Your offers are unique to your account — no two players see the same Night Market.
+
+## What Valstore shows during Night Market
+
+When Night Market is active, the Night Market tab displays all six of your discounted offers. Each skin card shows:
+
+- **Skin name and tier icon** — full skin name with its content tier badge
+- **Original VP cost** — the regular price shown with a strikethrough
+- **Discounted VP cost** — the reduced price highlighted in red
+- **Percentage savings** — the discount percentage displayed next to the price (e.g. `-49%`)
+- **Countdown timer** — a live days/hours/minutes countdown in the app header showing when Night Market ends
+
+Tapping a skin card opens the skin detail page with video previews of its levels and chromas.
+
+## When Night Market is inactive
+
+Night Market only runs during specific periods each act. When no Night Market event is running, Valstore detects this because the storefront API response does not include a `BonusStore` field. In that case, the Night Market tab shows a message indicating that no Night Market is currently available.
+
+<Note>
+  Because Night Market offers are personalized by Riot, the skins you see will differ from every other player's, even within the same account region.
+</Note>
+
+## Background notification
+
+<Info>
+  Valstore schedules a background task called `NightMarketRenewal` via WorkManager. When this task runs and detects that a Night Market event has become active, it sends a push notification — "Night market is back!" — so you know to check your offers without opening the app.
+</Info>

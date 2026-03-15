@@ -1,0 +1,50 @@
+---
+title: "Gallery & wishlist"
+description: "Browse all skins and save your favorites"
+---
+
+The gallery gives you a complete, searchable list of every purchasable weapon skin in Valorant. From there you can build a personal wishlist and see exactly which skins you already own.
+
+## Gallery
+
+The gallery tab loads every skin available for purchase from the Valorant API and sorts them alphabetically by display name. Each entry shows the skin's preview image and full name. Tapping a skin opens the detail page where you can view all unlock levels and chroma variants with their video previews.
+
+Use the **search icon** in the top bar to filter skins by name in real time. The search uses a full-text match against the skin's display name, so partial queries work.
+
+## Wishlist
+
+Every skin in the gallery and search results has a **star icon** on the right side of its row. Tapping it toggles that skin on or off your wishlist:
+
+- A **yellow star** means the skin is on your wishlist.
+- A **white outlined star** means it is not wishlisted.
+
+Your wishlist is accessible at any time through the dedicated **Wishlist** screen, reachable from the star button in the gallery header. The Wishlist screen shows only your saved skins and includes its own search bar.
+
+### Wishlist persistence
+
+Wishlist entries are stored in Firebase Firestore under your account's user document. This means your wishlist survives app reinstalls and device changes — as long as you log in with the same Riot account, your saved skins are restored automatically on first launch.
+
+## Inventory
+
+Valstore can retrieve the skins you already own by calling Riot's entitlements API (`/store/v1/entitlements/{userId}/{itemTypeId}`). The inventory view cross-references the entitlements response with the full skin list from the Valorant API so you can see all owned skins with their names and preview images.
+
+## Notification integration
+
+When the `ValStoreStoreRenewal` background task runs its daily shop check, it compares your current shop offers against every skin ID in your Firestore wishlist. If any wishlisted skin appears in the rotation, Valstore sends a push notification with the skin's name and image.
+
+## How to add a skin to your wishlist
+
+<Steps>
+  <Step title="Open the gallery">
+    Tap the **Gallery** tab in the bottom navigation bar.
+  </Step>
+  <Step title="Find the skin">
+    Scroll through the alphabetical list or tap the search icon and type the skin name.
+  </Step>
+  <Step title="Tap the star icon">
+    Tap the star icon on the right side of the skin row. It turns yellow to confirm the skin is now on your wishlist.
+  </Step>
+  <Step title="Wait for the notification">
+    When the skin appears in your daily shop, Valstore sends a push notification — "Skin arrived!" — with the skin image attached.
+  </Step>
+</Steps>

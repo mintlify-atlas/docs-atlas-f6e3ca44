@@ -1,0 +1,69 @@
+---
+title: "Development setup"
+description: "Set up your local environment to build and modify Valstore"
+---
+
+## Prerequisites
+
+Before you clone the repository, make sure you have the following installed and configured:
+
+- **Flutter SDK `^3.4.1`** — run `flutter --version` to verify. Dart SDK `^3.1` is included with Flutter.
+- **Android Studio** or **VS Code** with the [Flutter](https://marketplace.visualstudio.com/items?itemName=Dart-Code.flutter) and [Dart](https://marketplace.visualstudio.com/items?itemName=Dart-Code.dart-code) extensions installed.
+- **An Android device or emulator** running API level 24 or higher (the app targets `minSdk = 24`).
+- **A Firebase project** with Firestore Database and Authentication enabled — the app will not start without a valid `google-services.json`.
+
+## Setup
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/ruzbyte/valstore-mobile.git && cd valstore-mobile
+    ```
+  </Step>
+
+  <Step title="Install Flutter dependencies">
+    ```bash
+    flutter pub get
+    ```
+
+    <Note>
+      The `workmanager` package is sourced directly from its GitHub repository rather than pub.dev. The `pubspec.yaml` pins it to the `main` branch of `https://github.com/fluttercommunity/flutter_workmanager.git`. Running `flutter pub get` fetches it via Git automatically — no manual step is needed, but you do need network access and Git available in your `PATH`.
+    </Note>
+  </Step>
+
+  <Step title="Set up Firebase">
+    1. Go to [console.firebase.google.com](https://console.firebase.google.com) and create a new project (or use an existing one).
+    2. Enable **Firestore Database** (start in production or test mode).
+    3. Enable **Authentication** and turn on the **Anonymous** sign-in provider.
+    4. In your project's **Project settings → Your apps**, register an Android app with the package name `de.zaroc.valstore`.
+    5. Download the generated `google-services.json` and place it at `android/app/google-services.json`.
+
+    <Warning>
+      The app calls `Firebase.initializeApp()` at startup and will crash immediately if `android/app/google-services.json` is missing or contains invalid credentials. Do not commit this file to version control.
+    </Warning>
+  </Step>
+
+  <Step title="Run in debug mode">
+    Connect a device or start an emulator, then:
+
+    <CodeGroup>
+
+    ```bash Debug
+    flutter run
+    ```
+
+    ```bash Release
+    flutter run --release
+    ```
+
+    </CodeGroup>
+
+    The debug build enables WorkManager's debug mode and prints verbose logs to the console. The release build signs with the debug keystore by default — see `android/app/build.gradle` if you need to configure a production signing key.
+  </Step>
+
+  <Step title="Run tests">
+    ```bash
+    flutter test
+    ```
+  </Step>
+</Steps>

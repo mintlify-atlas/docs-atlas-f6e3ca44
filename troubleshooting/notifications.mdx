@@ -1,0 +1,76 @@
+---
+title: "Notification issues"
+description: "Fix missing or delayed push notifications"
+---
+
+<Warning>
+  Battery optimization settings imposed by the device manufacturer are the most common cause of notification problems. Xiaomi, OPPO, OnePlus, and other OEM devices aggressively kill background processes by default. Check the manufacturer-specific steps below before investigating other causes.
+</Warning>
+
+Valstore notifications depend on background tasks scheduled through **WorkManager**. When the OS runs a task — `ValStoreStoreRenewal`, `NightMarketRenewal`, or `ValStoreBundleRenewal` — it re-authenticates your session, checks the shop or Night Market, and fires a local notification if a relevant change is detected. If the OS prevents these tasks from running, no notifications are sent.
+
+<Tip>
+  Opening the app triggers a store refresh immediately. Use this to verify that wishlist matching and notifications work correctly before concluding there is a background-task problem.
+</Tip>
+
+<AccordionGroup>
+  <Accordion title="Not receiving any notifications">
+    Work through the following checks in order:
+
+    **1. Notification permission**
+
+    Android 13 and later requires an explicit runtime permission for notifications. If you skipped the prompt during setup, grant the permission manually.
+
+    <Steps>
+      <Step title="Open Android Settings">
+        Go to **Settings → Apps → Valstore → Permissions → Notifications**.
+      </Step>
+      <Step title="Enable notifications">
+        Set the permission to **Allow**.
+      </Step>
+    </Steps>
+
+    **2. Battery optimization**
+
+    If the permission is already granted, battery optimization may be killing the WorkManager tasks before they can fire.
+
+    - **Xiaomi:** hold the Valstore app icon → **App-Info** → **Battery saver** → select **No restrictions**.
+    - **OPPO / OnePlus:** go to **Settings → Battery → App power management** → find Valstore and allow background activity.
+
+    For other manufacturers, look for a setting labelled **Battery optimization**, **Background activity**, or **Power saving** and exclude Valstore from restrictions.
+  </Accordion>
+
+  <Accordion title="Notifications stopped after a phone restart">
+    **Cause:** many device manufacturers cancel all WorkManager tasks when the phone reboots. The tasks are not automatically rescheduled unless Autostart is enabled for the app.
+
+    **Fix:** enable Autostart for Valstore.
+
+    - **Xiaomi:** go to **Settings → Apps → Manage apps → Valstore → Autostart** and toggle it on.
+
+    For other manufacturers, search your phone's settings for **Autostart**, **Auto-launch**, or **Background app management** and add Valstore to the allowed list.
+  </Accordion>
+
+  <Accordion title="Notifications are delayed or arriving late">
+    **Cause:** WorkManager schedules tasks with constraints (network availability, battery state). On devices with aggressive power management, the OS may defer tasks until the phone is charging or the battery is above a certain level.
+
+    This is a known Android limitation. There is no guaranteed delivery time — the OS runs WorkManager tasks whenever it decides resources allow.
+
+    <Info>
+      Keeping Valstore excluded from battery optimization (see above) gives WorkManager the best chance of running tasks close to their scheduled time.
+    </Info>
+  </Accordion>
+
+  <Accordion title="Wishlist notifications not working despite items being in your wishlist">
+    Work through these checks:
+
+    1. **Wishlist is saved.** The wishlist is stored in Firestore and requires an active account sync. Open the app, navigate to your wishlist, and confirm your skins are listed.
+    2. **Shop has been refreshed.** The wishlist check only runs during the `ValStoreStoreRenewal` background task. If that task has not run yet today, the comparison against your shop has not happened.
+    3. **Manually trigger a refresh.** Open the app — this forces an immediate store refresh and will fire a notification right away if a wishlisted skin is in your shop.
+  </Accordion>
+
+  <Accordion title="Duplicate notifications">
+    **Cause:** in rare cases WorkManager may execute the same task more than once, resulting in duplicate notifications.
+
+    No action is needed. Notifications are issued with random IDs (via `Random().nextInt(100)`), so duplicates are deduplicated by the OS notification manager and typically collapse in the notification shade.
+  </Accordion>
+</AccordionGroup>

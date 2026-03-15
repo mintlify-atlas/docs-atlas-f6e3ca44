@@ -1,0 +1,68 @@
+---
+title: "Common issues"
+description: "Fix loading problems, login errors, and data issues"
+---
+
+<AccordionGroup>
+  <Accordion title="Infinite loading / long load times">
+    **Cause:** slow network connection, an expired session, or Riot API rate limits.
+
+    **Fix:** force-close the app and reopen it. If the issue persists, clear the app's data and log in again.
+
+    <Note>
+      Loading skin assets requires downloading images from Riot's servers. On a slow or unstable connection this will take noticeably longer than usual.
+    </Note>
+  </Accordion>
+
+  <Accordion title="Shop not updating / showing old data">
+    **Cause:** Valstore caches shop data for up to 1 hour. The cache is held in memory by `getStore()` and is only invalidated when the app process is fully restarted.
+
+    **Fix:** force-close the app completely and reopen it. The in-memory cache is cleared on restart, and a fresh request is made to the Riot store API.
+  </Accordion>
+
+  <Accordion title="Login fails or WebView shows an error">
+    **Cause:** the Riot login page relies on cookies stored by the in-app WebView. If those cookies are stale or corrupted, the redirect back to Valstore fails.
+
+    **Fix:**
+
+    <Steps>
+      <Step title="Clear app data">
+        Go to **Settings → Apps → Valstore → Storage → Clear Data**.
+      </Step>
+      <Step title="Reopen Valstore and log in again">
+        The WebView will load a fresh session with no stale cookies.
+      </Step>
+    </Steps>
+
+    <Note>
+      Two-factor authentication works through the same WebView. When the 2FA prompt appears, complete it inside the browser before the login flow continues.
+    </Note>
+  </Accordion>
+
+  <Accordion title="Unknown Player shown instead of your game name">
+    **Cause:** the Riot name-service API (`/name-service/v2/players`) failed to return your account data, either because of a network error or a temporary rate limit. When this happens, Valstore falls back to displaying `Unknown Player`.
+
+    **Fix:** restart the app. Player data is re-fetched from the name service at the start of every new session.
+  </Accordion>
+
+  <Accordion title="Night Market tab not showing discounts">
+    **Cause:** the Night Market event is not currently active in your Valorant region. Valstore checks for the `BonusStore` field in the storefront response; when it is absent, no discounts can be displayed.
+
+    The tab will show a message indicating that Night Market is unavailable until the next event begins.
+  </Accordion>
+
+  <Accordion title="App crashes on startup">
+    **Cause:** a Firebase initialization error or corrupted data in SharedPreferences can prevent the app from launching successfully.
+
+    **Fix:**
+
+    <Steps>
+      <Step title="Clear app data">
+        Go to **Settings → Apps → Valstore → Storage → Clear Data** and try opening the app again.
+      </Step>
+      <Step title="Reinstall if needed">
+        If clearing data does not help, uninstall Valstore, reinstall it, and log in again.
+      </Step>
+    </Steps>
+  </Accordion>
+</AccordionGroup>
