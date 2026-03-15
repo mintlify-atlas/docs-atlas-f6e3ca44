@@ -1,0 +1,74 @@
+{
+  "projectType": "saas",
+  "projectName": "Valstore",
+  "projectDescription": "A Flutter mobile app that gives Valorant players portable access to their in-game shop, night market, bundles, and skin wishlist with push notifications.",
+  "theme": "almond",
+  "primaryColor": "#f84555",
+  "lightColor": "#962d36",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "getting-started/installation",
+              "getting-started/login"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/player-shop",
+              "features/night-market",
+              "features/bundles",
+              "features/gallery-wishlist",
+              "features/notifications"
+            ]
+          },
+          {
+            "group": "Troubleshooting",
+            "pages": [
+              "troubleshooting/common-issues",
+              "troubleshooting/notifications"
+            ]
+          },
+          {
+            "group": "Contributing",
+            "pages": [
+              "contributing/setup",
+              "contributing/architecture"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Player daily shop with skin previews and prices",
+    "Night Market with discounted skin offers",
+    "Featured bundle browsing with bundle contents",
+    "Skin gallery and personal wishlist",
+    "Push notifications for wishlisted skins, Night Market, and new bundles",
+    "Background store refresh via WorkManager",
+    "Firebase-backed skin database and user wishlist sync",
+    "Accessories store and player inventory view"
+  ],
+  "publicApiSurface": [
+    "RiotService.getStore()",
+    "RiotService.getNightMarket()",
+    "RiotService.getCurrentBundle()",
+    "RiotService.getUserOwnedItems()",
+    "RiotService.getUserData()",
+    "RiotService.reuathenticateUser()",
+    "RiotService.getPlayerEquipedSkins()",
+    "NotificationService.showInstantNotification()",
+    "NotificationService.showInstantNotificationWithoutPicture()",
+    "FireStoreService.getUserWishlist()",
+    "InofficialValorantAPI.getCurrentVersion()",
+    "InofficialValorantAPI.getLevelBorders()"
+  ]
+}
